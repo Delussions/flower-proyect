@@ -1,26 +1,96 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg-hero-cream: #f6efe2;
+  --bg-arch-hero: #ddd7d0;
+  --bg-arch-card: #f4f4f4;
+  --text-primary: #2e2a27;
+  --text-muted: #8c857b;
+  --surface-btn: #4a443f;
+  --accent-gold: #a8762a;
+  --accent-gold-light: #c48f3a;
+  --bg-store-dark: #110e0c;
+  --text-store-gold: #d5a362;
+  --bg-banner-ochre: #9e6e28;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --font-serif: var(--font-cormorant), Georgia, serif;
+  --font-sans: var(--font-jakarta), system-ui, sans-serif;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-jakarta), system-ui, -apple-system, sans-serif;
+  color: var(--text-primary);
+  background-color: #ffffff;
+}
+
+.font-editorial {
+  font-family: var(--font-cormorant), Georgia, serif;
+}
+
+/* Arch geometries matching the reference design */
+.arch-top {
+  border-radius: 9999px 9999px 0 0;
+}
+
+.arch-right {
+  border-radius: 0 9999px 9999px 0;
+}
+
+.arch-left {
+  border-radius: 9999px 0 0 9999px;
+}
+
+.arch-bottom-right {
+  border-radius: 0 9999px 9999px 0;
+}
+
+/* Floating subtle animation for petals and badges */
+@keyframes floatSlow {
+  0%,
+  100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-10px) rotate(2deg);
+  }
+}
+
+@keyframes pulseRing {
+  0% {
+    transform: scale(0.95);
+    opacity: 0.7;
+  }
+  70% {
+    transform: scale(1.65);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1.65);
+    opacity: 0;
+  }
+}
+
+.animate-float-slow {
+  animation: floatSlow 6s ease-in-out infinite;
+}
+
+.animate-pulse-ring {
+  animation: pulseRing 2.4s cubic-bezier(0.24, 0, 0.38, 1) infinite;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #f6efe2;
+}
+::-webkit-scrollbar-thumb {
+  background: #c7bdb0;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #a8762a;
 }
