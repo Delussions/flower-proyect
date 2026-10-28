@@ -1,85 +1,189 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import CurvedArchText from "@/components/CurvedArchText";
-import InteractiveMap from "@/components/InteractiveMap";
-import CartDrawer, { CartEntry } from "@/components/CartDrawer";
-import {
-  MAIN_BOUQUETS,
-  WEEKLY_BENTO_BOUQUETS,
-  STORE_LOCATIONS,
-  TESTIMONIALS,
-  DELIVERY_STEPS,
-  SUBSCRIPTION_PLANS,
-  BouquetItem,
-} from "@/data/bouquets";
+import SplitBotanicalHero from "@/components/SplitBotanicalHero";
+import FastOrderEditorialHero from "@/components/FastOrderEditorialHero";
 
-export default function FloraliaLandingPage() {
-  // Parallax state (scroll + mouse 3D tilt)
+interface CartItem {
+  id: string;
+  name: string;
+  price: number;
+  image: string;
+  quantity: number;
+}
+
+interface CatalogProduct {
+  id: string;
+  name: string;
+  subtitle: string;
+  category: "kraft" | "lavanda" | "pistacho" | "florero";
+  price: number;
+  oldPrice: number;
+  bgCard: string;
+  accentTag: string;
+  tagColor: string;
+  image: string;
+  deliveryMinutes: number;
+}
+
+const CATALOG_PRODUCTS: CatalogProduct[] = [
+  {
+    id: "prod-kraft-white",
+    name: "Ramo Taze Kraft & Canela",
+    subtitle: "Rosas blancas, crisantemos lima y eucalipto",
+    category: "kraft",
+    price: 42,
+    oldPrice: 52,
+    bgCard: "#FFF083",
+    accentTag: "20% Dto. Express",
+    tagColor: "#355E4B",
+    image: "/images/kraft-white-roses.png",
+    deliveryMinutes: 18,
+  },
+  {
+    id: "prod-lavender-dream",
+    name: "Sinfonía Lavanda Imperial",
+    subtitle: "Rosas lilas, lisianthus púrpura y lazo de seda",
+    category: "lavanda",
+    price: 48,
+    oldPrice: 60,
+    bgCard: "#E6D2F7",
+    accentTag: "Favorito Artístico",
+    tagColor: "#6B3FA0",
+    image: "/images/bouquet-lavender.png",
+    deliveryMinutes: 22,
+  },
+  {
+    id: "prod-citrus-spring",
+    name: "Brisa Pistacho & Tulipanes",
+    subtitle: "Tulipanes crema, hortensias verdes y manzanilla",
+    category: "pistacho",
+    price: 45,
+    oldPrice: 56,
+    bgCard: "#DCEB9E",
+    accentTag: "Cosecha del Día",
+    tagColor: "#4D6B14",
+    image: "/images/bouquet-citrus.png",
+    deliveryMinutes: 20,
+  },
+  {
+    id: "prod-vase-orchids",
+    name: "Florero Orquídea Real",
+    subtitle: "Rosas rojas, orquídeas blancas y espigas coral",
+    category: "florero",
+    price: 25,
+    oldPrice: 32,
+    bgCard: "#DCE7D6",
+    accentTag: "Incluye Florero",
+    tagColor: "#355E4B",
+    image: "/images/vase-red-orchids.png",
+    deliveryMinutes: 19,
+  },
+  {
+    id: "prod-vase-bronze",
+    name: "Florero Bronce Rosé",
+    subtitle: "Domo de rosas rubor y durazno en vaso martillado",
+    category: "florero",
+    price: 25,
+    oldPrice: 32,
+    bgCard: "#F6E4C8",
+    accentTag: "Más Regalado",
+    tagColor: "#F28B30",
+    image: "/images/vase-blush-roses.png",
+    deliveryMinutes: 21,
+  },
+  {
+    id: "prod-scabiosa-atelier",
+    name: "Edición Escabiosa Púrpura",
+    subtitle: "Arreglo botánico de autor con follaje estrella",
+    category: "lavanda",
+    price: 39,
+    oldPrice: 49,
+    bgCard: "#F5D9EC",
+    accentTag: "Nueva Colección",
+    tagColor: "#12131A",
+    image: "/images/scabiosa-macro.png",
+    deliveryMinutes: 24,
+  },
+];
+
+const DELIVERY_FEATURES = [
+  {
+    num: "01",
+    title: "Corte Matutino a las 5:00 AM",
+    desc: "Seleccionamos cada tallo directamente de invernaderos locales para garantizar 14 días de frescura.",
+    color: "#FFF083",
+  },
+  {
+    num: "02",
+    title: "Empaque Kraft, Lino o Cristal",
+    desc: "Envoltura artesanal con rafia natural, ramas de canela aromática o floreros de colección.",
+    color: "#DCE7D6",
+  },
+  {
+    num: "03",
+    title: "Despacho Ultrarrápido en 20 Min",
+    desc: "Nuestra flota climatizada entrega tu ramo en tiempo récord con seguimiento GPS en vivo.",
+    color: "#E6D2F7",
+  },
+  {
+    num: "04",
+    title: "20% Descuento por Puntualidad",
+    desc: "Beneficio exclusivo automático en todos tus pedidos programados o de entrega inmediata.",
+    color: "#F6E4C8",
+  },
+];
+
+export default function DualFloralLandingPage() {
+  // Parallax state
   const [scrollY, setScrollY] = useState(0);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
 
-  // Search & Catalog filter state
-  const [searchQuery, setSearchQuery] = useState("");
-  const [showAllBouquets, setShowAllBouquets] = useState(false);
-  const [activeCategory, setActiveCategory] = useState<string>("todos");
-
-  // Store locator state
-  const [selectedStoreId, setSelectedStoreId] = useState<string>(
-    STORE_LOCATIONS[0].id
-  );
-  const [pickupInput, setPickupInput] = useState<string>(
-    STORE_LOCATIONS[0].pickupPoint
-  );
-  const [dropoffInput, setDropoffInput] = useState<string>(
-    "Av. Paseo de la Reforma 240, Depto 8B"
+  // Allows the user to toggle which of the 2 reference heroes appears first at the very top
+  const [primaryDesign, setPrimaryDesign] = useState<"editorial" | "split">(
+    "editorial"
   );
 
-  // Custom Bouquet Builder state (Continuation section)
-  const [customFlower, setCustomFlower] = useState("Rosas Blancas de Jardín");
-  const [customStems, setCustomStems] = useState(24);
-  const [customWrap, setCustomWrap] = useState("Lino Champán Natural");
+  // Catalog filter state
+  const [selectedCategory, setSelectedCategory] = useState<string>("todos");
 
-  // Cart state
-  const [cart, setCart] = useState<CartEntry[]>([]);
+  // Custom Bouquet Builder & Express Delivery Calculator state
+  const [builderStyle, setBuilderStyle] = useState("Rosas Blancas & Kraft");
+  const [builderSize, setBuilderSize] = useState(24);
+  const [builderAroma, setBuilderAroma] = useState("Canela & Eucalipto Fresco");
+  const [deliveryPostal, setDeliveryPostal] = useState(
+    "Av. Paseo de la Reforma 350"
+  );
+
+  // Shopping Cart state
+  const [cart, setCart] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [dedicationNote, setDedicationNote] = useState("");
+  const [recipientName, setRecipientName] = useState("");
+  const [orderSuccess, setOrderSuccess] = useState(false);
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
 
-  // Smooth scroll & mouse parallax listeners
   useEffect(() => {
     let rafId: number;
-    const handleScroll = () => {
+    const onScroll = () => {
       rafId = requestAnimationFrame(() => {
         setScrollY(window.scrollY);
       });
     };
-
-    const handleMouseMove = (e: MouseEvent) => {
+    const onMouseMove = (e: MouseEvent) => {
       const nx = (e.clientX / window.innerWidth - 0.5) * 2;
       const ny = (e.clientY / window.innerHeight - 0.5) * 2;
       setMousePos({ x: nx, y: ny });
     };
-
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    window.addEventListener("mousemove", handleMouseMove, { passive: true });
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("mousemove", onMouseMove, { passive: true });
     return () => {
       cancelAnimationFrame(rafId);
-      window.removeEventListener("scroll", handleScroll);
-      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("mousemove", onMouseMove);
     };
   }, []);
 
-  // Sync store selector with pickup input
-  const handleSelectStore = (id: string) => {
-    setSelectedStoreId(id);
-    const found = STORE_LOCATIONS.find((s) => s.id === id);
-    if (found) {
-      setPickupInput(found.pickupPoint);
-    }
-  };
-
-  // Add item to cart with toast feedback
   const handleAddToCart = (item: {
     id: string;
     name: string;
@@ -87,18 +191,16 @@ export default function FloraliaLandingPage() {
     image: string;
   }) => {
     setCart((prev) => {
-      const existing = prev.find((i) => i.id === item.id);
-      if (existing) {
+      const found = prev.find((i) => i.id === item.id);
+      if (found) {
         return prev.map((i) =>
           i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i
         );
       }
       return [...prev, { ...item, quantity: 1 }];
     });
-    setToastMessage(`"${item.name}" añadido a tu cesta floral`);
-    setTimeout(() => {
-      setToastMessage(null);
-    }, 3000);
+    setToastMsg(`"${item.name}" agregado con 20% de descuento puntual`);
+    setTimeout(() => setToastMsg(null), 3200);
   };
 
   const handleUpdateQty = (id: string, delta: number) => {
@@ -111,524 +213,250 @@ export default function FloraliaLandingPage() {
     );
   };
 
-  const totalCartItems = cart.reduce((acc, item) => acc + item.quantity, 0);
+  const totalCartItems = cart.reduce((sum, i) => sum + i.quantity, 0);
+  const rawSubtotal = cart.reduce((sum, i) => sum + i.price * i.quantity, 0);
+  const discountAmount = Math.round(rawSubtotal * 0.2);
+  const finalTotal = rawSubtotal - discountAmount;
 
-  // Filter bouquets by search and category
-  const filteredBouquets: BouquetItem[] = MAIN_BOUQUETS.filter((b) => {
-    const matchesSearch =
-      b.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      b.subtitle.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCat =
-      activeCategory === "todos" || b.category === activeCategory;
-    return matchesSearch && matchesCat;
-  });
+  const filteredProducts =
+    selectedCategory === "todos"
+      ? CATALOG_PRODUCTS
+      : CATALOG_PRODUCTS.filter((p) => p.category === selectedCategory);
 
-  const displayedBouquets =
-    showAllBouquets || searchQuery.trim() !== "" || activeCategory !== "todos"
-      ? filteredBouquets
-      : filteredBouquets.slice(0, 3);
-
-  // Clamped parallax offsets so layout remains crisp at all scroll depths
-  const heroScrollOffset = Math.min(scrollY, 700);
-  const catalogScrollOffset = Math.max(0, Math.min(scrollY - 350, 700));
-  const bentoScrollOffset = Math.max(0, Math.min(scrollY - 1050, 700));
+  const catalogParallax = Math.max(0, Math.min(scrollY - 900, 700));
 
   return (
-    <div className="min-h-screen bg-white text-[#2E2A27] relative">
-      {/* Floating Toast Notification */}
-      {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 bg-[#2E2A27] text-[#F6EFE2] px-5 py-3.5 shadow-2xl border-l-4 border-[#A8762A] flex items-center gap-3 animate-bounce">
-          <span className="text-[#D5A362]">✿</span>
-          <span className="text-xs tracking-wide">{toastMessage}</span>
+    <main className="min-h-screen bg-[#F7F6F2] text-[#12131A] relative">
+      {/* =====================================================================
+          FLOATING DUAL-DESIGN SWITCHER PILL
+          Lets user switch which of the two reference Heroes is at the very top,
+          while both remain seamlessly connected in the scroll flow!
+      ===================================================================== */}
+      <div className="fixed bottom-5 left-5 z-40 bg-[#12131A]/95 backdrop-blur-md text-white p-1.5 rounded-full shadow-2xl border border-white/15 flex items-center gap-1 text-[11px]">
+        <button
+          onClick={() => {
+            setPrimaryDesign("editorial");
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          }}
+          className={`px-3.5 py-1.5 rounded-full font-medium transition-all cursor-pointer ${
+            primaryDesign === "editorial"
+              ? "bg-[#FFF083] text-[#12131A] font-bold"
+              : "text-white/75 hover:text-white"
+          }`}
+        >
+          1. Hero Editorial Rápido
+        </button>
+        <button
+          onClick={() => {
+            setPrimaryDesign("split");
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          }}
+          className={`px-3.5 py-1.5 rounded-full font-medium transition-all cursor-pointer ${
+            primaryDesign === "split"
+              ? "bg-gradient-to-r from-[#D3B5ED] to-[#ABC94C] text-[#12131A] font-bold"
+              : "text-white/75 hover:text-white"
+          }`}
+        >
+          2. Hero Split Botánico
+        </button>
+      </div>
+
+      {/* Toast Notification */}
+      {toastMsg && (
+        <div className="fixed bottom-5 right-5 z-50 bg-[#0F111A] text-white px-5 py-3.5 shadow-2xl border-l-4 border-[#F28B30] flex items-center gap-3">
+          <span className="w-2.5 h-2.5 rounded-full bg-[#ABC94C]" />
+          <span className="text-xs font-medium">{toastMsg}</span>
           <button
             onClick={() => setIsCartOpen(true)}
-            className="text-[11px] uppercase tracking-[0.18em] text-[#D5A362] underline ml-2 cursor-pointer"
+            className="text-[11px] uppercase tracking-wider text-[#FFF083] underline ml-2 cursor-pointer"
           >
-            Ver Cesta
+            Ver Carrito
           </button>
         </div>
       )}
 
       {/* =====================================================================
-          1. HERO + HEADER SECTION (EXACT RECREATION OF REFERENCE TOP-LEFT)
-          Background: Warm Champagne Cream (#F6EFE2)
+          RENDER BOTH EXACT REFERENCE DESIGNS (ADAPTIVE ORDER)
       ===================================================================== */}
-      <section
-        id="inicio"
-        className="relative bg-[#F6EFE2] overflow-hidden pt-6 pb-20 lg:pb-28 transition-colors"
-      >
-        {/* Subtle Decorative Parallax Botanical Particles in Background */}
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 overflow-hidden"
-        >
-          <div
-            style={{
-              transform: `translate3d(${mousePos.x * -18}px, ${
-                heroScrollOffset * 0.18 + mousePos.y * -18
-              }px, 0)`,
-            }}
-            className="absolute -top-24 -left-24 w-96 h-96 rounded-full bg-[#EDE3D2]/60 blur-3xl transition-transform duration-300 ease-out"
+      {primaryDesign === "editorial" ? (
+        <>
+          <FastOrderEditorialHero
+            scrollY={scrollY}
+            mousePos={mousePos}
+            cartCount={totalCartItems}
+            onOpenCart={() => setIsCartOpen(true)}
+            onAddToCart={handleAddToCart}
           />
-          <div
-            style={{
-              transform: `translate3d(${mousePos.x * 22}px, ${
-                heroScrollOffset * -0.12 + mousePos.y * 22
-              }px, 0)`,
+          <SplitBotanicalHero
+            scrollY={Math.max(0, scrollY - 750)}
+            mousePos={mousePos}
+            cartCount={totalCartItems}
+            onOpenCart={() => setIsCartOpen(true)}
+            onExploreClick={() => {
+              document
+                .getElementById("catalogo-floral")
+                ?.scrollIntoView({ behavior: "smooth" });
             }}
-            className="absolute top-1/3 -right-24 w-80 h-80 rounded-full bg-[#E8DEC8]/50 blur-3xl transition-transform duration-300 ease-out"
           />
-        </div>
-
-        <div className="max-w-[1240px] mx-auto px-6 sm:px-10 lg:px-14 relative z-10">
-          {/* ---------------- NAVBAR ---------------- */}
-          <header className="flex items-center justify-between py-3 mb-10 lg:mb-14">
-            {/* Brand Logo ("Flowery" -> "Floralia") */}
-            <a
-              href="#inicio"
-              className="text-[22px] font-medium tracking-[-0.02em] text-[#2E2A27] hover:opacity-80 transition-opacity"
-            >
-              Floralia
-            </a>
-
-            {/* Center Navigation Links (5 links matching reference) */}
-            <nav className="hidden md:flex items-center gap-8 lg:gap-10 text-[13px] text-[#8C857B]">
-              <a
-                href="#inicio"
-                className="relative text-[#2E2A27] font-medium py-1"
-              >
-                Inicio
-                {/* Exact short active indicator bar under first link */}
-                <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-5 h-[1.5px] bg-[#2E2A27]" />
-              </a>
-              <a
-                href="#servicios"
-                className="hover:text-[#2E2A27] transition-colors py-1"
-              >
-                Servicios
-              </a>
-              <a
-                href="#catalogo"
-                className="hover:text-[#2E2A27] transition-colors py-1"
-              >
-                Listos para comprar
-              </a>
-              <a
-                href="#precios"
-                className="hover:text-[#2E2A27] transition-colors py-1"
-              >
-                Precios
-              </a>
-              <a
-                href="#nosotros"
-                className="hover:text-[#2E2A27] transition-colors py-1"
-              >
-                Nosotros
-              </a>
-            </nav>
-
-            {/* Right Search Box + Divider + Shopping Bag with Gold Badge */}
-            <div className="flex items-center gap-3">
-              <div className="bg-white flex items-center h-11 px-3.5 shadow-[0_2px_15px_rgba(46,42,39,0.04)]">
-                {/* Search Icon */}
-                <svg
-                  className="w-3.5 h-3.5 text-[#9A9389] mr-2.5 shrink-0"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                  viewBox="0 0 24 24"
-                >
-                  <circle cx="11" cy="11" r="7" />
-                  <path d="M20 20l-3.5-3.5" strokeLinecap="round" />
-                </svg>
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Buscar..."
-                  aria-label="Buscar ramos de flores"
-                  className="w-28 sm:w-36 lg:w-40 text-[12px] text-[#2E2A27] placeholder-[#B0A99F] bg-transparent focus:outline-none"
-                />
-                {/* Vertical Divider inside White Box */}
-                <span className="h-5 w-[1px] bg-[#EBE6DF] mx-3" />
-                {/* Shopping Bag Button with Gold Badge */}
-                <button
-                  onClick={() => setIsCartOpen(true)}
-                  className="relative p-1 text-[#4A443F] hover:text-[#A8762A] transition-colors cursor-pointer"
-                  aria-label="Abrir cesta de compras"
-                >
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.7"
-                    viewBox="0 0 24 24"
-                  >
-                    <path d="M6 7h12l1 13H5L6 7z" />
-                    <path d="M9 7V5a3 3 0 0 1 6 0v2" />
-                  </svg>
-                  <span className="absolute -top-1 -right-1.5 w-3.5 h-3.5 rounded-full bg-[#A8762A] text-white text-[9px] font-semibold flex items-center justify-center leading-none">
-                    {totalCartItems}
-                  </span>
-                </button>
-              </div>
-
-              {/* Mobile Menu Trigger */}
-              <button
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="md:hidden w-11 h-11 bg-white text-[#2E2A27] flex items-center justify-center"
-                aria-label="Abrir menú"
-              >
-                ☰
-              </button>
-            </div>
-          </header>
-
-          {/* Mobile Navigation Drawer */}
-          {mobileMenuOpen && (
-            <div className="md:hidden bg-white p-5 mb-8 border border-[#E5DEC9] flex flex-col gap-3 text-sm">
-              <a
-                href="#inicio"
-                onClick={() => setMobileMenuOpen(false)}
-                className="font-medium text-[#2E2A27]"
-              >
-                Inicio
-              </a>
-              <a
-                href="#servicios"
-                onClick={() => setMobileMenuOpen(false)}
-                className="text-[#8C857B]"
-              >
-                Servicios
-              </a>
-              <a
-                href="#catalogo"
-                onClick={() => setMobileMenuOpen(false)}
-                className="text-[#8C857B]"
-              >
-                Listos para comprar
-              </a>
-              <a
-                href="#precios"
-                onClick={() => setMobileMenuOpen(false)}
-                className="text-[#8C857B]"
-              >
-                Precios
-              </a>
-              <a
-                href="#nosotros"
-                onClick={() => setMobileMenuOpen(false)}
-                className="text-[#8C857B]"
-              >
-                Nosotros
-              </a>
-            </div>
-          )}
-
-          {/* ---------------- 3-COLUMN HERO GRID ---------------- */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 items-center gap-10 lg:gap-4 pt-2">
-            {/* LEFT COLUMN: Editorial Heading, Subtitle & CTAs */}
-            <div
-              style={{
-                transform: `translate3d(${mousePos.x * 6}px, ${
-                  heroScrollOffset * -0.08
-                }px, 0)`,
-              }}
-              className="lg:col-span-5 z-20 transition-transform duration-300 ease-out"
-            >
-              <h1 className="font-editorial text-[54px] sm:text-[68px] xl:text-[76px] leading-[1.02] tracking-[-0.02em] text-[#2E2A27] font-normal lg:-mr-16 relative z-20">
-                Regalos perfectos
-                <br />
-                para ti
-              </h1>
-
-              <p className="mt-6 text-[13.5px] sm:text-[14px] leading-[1.7] text-[#8C857B] max-w-[305px]">
-                Envía a tu persona favorita las mejores flores frescas,
-                seleccionadas para tu persona favorita.
-              </p>
-
-              <div className="mt-9 flex flex-wrap items-center gap-6">
-                <a
-                  href="#catalogo"
-                  className="bg-[#4A443F] text-[#F6EFE2] text-[12.5px] font-normal px-7 py-3.5 shadow-[0_10px_25px_rgba(74,68,63,0.18)] hover:bg-[#2E2A27] transition-all duration-300"
-                >
-                  Comenzar Ahora
-                </a>
-                <a
-                  href="#servicios"
-                  className="text-[12.5px] text-[#2E2A27] font-medium flex items-center gap-1.5 hover:text-[#A8762A] transition-colors group"
-                >
-                  <span>Cómo funciona</span>
-                  <span className="text-[13px] transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
-                    ↗
-                  </span>
-                </a>
-              </div>
-            </div>
-
-            {/* CENTER COLUMN: Curved "Demuestra tu amor" + Warm Greige Arch + White Roses Cutout + "DESDE 2021" */}
-            <div className="lg:col-span-4 flex flex-col items-center justify-center relative z-10">
-              {/* Curved SVG Text following the top of the Arch */}
-              <div
-                style={{
-                  transform: `translate3d(${mousePos.x * -8}px, ${
-                    heroScrollOffset * -0.05 + mousePos.y * -6
-                  }px, 0)`,
-                }}
-                className="w-[290px] sm:w-[330px] -mb-11 z-20 transition-transform duration-300 ease-out"
-              >
-                <CurvedArchText
-                  id="hero-love"
-                  text="Demuestra tu amor"
-                  variant="top-center"
-                />
-              </div>
-
-              {/* Central Botanical Arch Container */}
-              <div
-                style={{
-                  transform: `translate3d(${mousePos.x * -10}px, ${
-                    heroScrollOffset * 0.06 + mousePos.y * -8
-                  }px, 0)`,
-                }}
-                className="relative w-[290px] sm:w-[335px] h-[380px] sm:h-[430px] flex items-end justify-center transition-transform duration-300 ease-out"
-              >
-                {/* The solid #DDD7D0 Arch Backdrop */}
-                <div className="absolute inset-x-2 top-3 bottom-0 bg-[#DDD7D0] arch-top shadow-[inset_0_2px_20px_rgba(0,0,0,0.03)]" />
-
-                {/* White Roses Studio Cutout with independent deeper parallax so petals slightly overflow the arch */}
-                <img
-                  src="/images/flowers/hero-white-roses.png"
-                  alt="Ramo de rosas blancas frescas sostenido a mano"
-                  style={{
-                    transform: `translate3d(${mousePos.x * -16}px, ${
-                      mousePos.y * -12
-                    }px, 0) scale(1.09)`,
-                  }}
-                  className="relative z-10 w-full h-[106%] object-contain object-bottom drop-shadow-[0_18px_28px_rgba(46,42,39,0.14)] transition-transform duration-300 ease-out select-none pointer-events-none"
-                />
-              </div>
-
-              {/* Bottom Spaced Label: "SINCE 2021" -> "DESDE 2021" */}
-              <p className="mt-5 text-[10.5px] uppercase tracking-[0.34em] text-[#7D766D] font-medium">
-                DESDE 2021
-              </p>
-            </div>
-
-            {/* RIGHT COLUMN: 3 Vertical Metrics with White Icon Squares & Gold Icons */}
-            <div
-              style={{
-                transform: `translate3d(${mousePos.x * 10}px, ${
-                  heroScrollOffset * -0.06
-                }px, 0)`,
-              }}
-              className="lg:col-span-3 flex flex-row lg:flex-col justify-center lg:pl-10 gap-6 sm:gap-9 flex-wrap transition-transform duration-300 ease-out"
-            >
-              {/* Stat 1: 290 Tipos de flores */}
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-white shadow-[0_6px_20px_rgba(46,42,39,0.05)] flex items-center justify-center shrink-0">
-                  {/* Gold Eye Icon */}
-                  <svg
-                    className="w-5 h-5 text-[#A8762A]"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                    viewBox="0 0 24 24"
-                  >
-                    <path d="M2 12s3.6-6 10-6 10 6 10 6-3.6 6-10 6-10-6-10-6z" />
-                    <circle
-                      cx="12"
-                      cy="12"
-                      r="2.5"
-                      fill="currentColor"
-                    />
-                  </svg>
-                </div>
-                <div>
-                  <p className="font-editorial text-[31px] leading-none text-[#2E2A27] font-normal">
-                    290
-                  </p>
-                  <p className="text-[11.5px] text-[#8C857B] mt-1">
-                    Tipos de flores
-                  </p>
-                </div>
-              </div>
-
-              {/* Stat 2: 500+ Estilos únicos */}
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-white shadow-[0_6px_20px_rgba(46,42,39,0.05)] flex items-center justify-center shrink-0">
-                  {/* Gold Sparkle / Botanical Style Icon */}
-                  <svg
-                    className="w-5 h-5 text-[#A8762A]"
-                    fill="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3zm6.5 12l.9 2.1 2.1.9-2.1.9-.9 2.1-.9-2.1-2.1-.9 2.1-.9.9-2.1zM5.5 15l.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7.7-1.8z" />
-                  </svg>
-                </div>
-                <div>
-                  <p className="font-editorial text-[31px] leading-none text-[#2E2A27] font-normal">
-                    500<span className="text-[22px] text-[#8C857B]">+</span>
-                  </p>
-                  <p className="text-[11.5px] text-[#8C857B] mt-1">
-                    Estilos únicos
-                  </p>
-                </div>
-              </div>
-
-              {/* Stat 3: 1M Clientes felices */}
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-white shadow-[0_6px_20px_rgba(46,42,39,0.05)] flex items-center justify-center shrink-0">
-                  {/* Gold Star Icon */}
-                  <svg
-                    className="w-5 h-5 text-[#A8762A]"
-                    fill="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5L2.5 9.4l6.6-.9L12 2.5z" />
-                  </svg>
-                </div>
-                <div>
-                  <p className="font-editorial text-[31px] leading-none text-[#2E2A27] font-normal">
-                    1M
-                  </p>
-                  <p className="text-[11.5px] text-[#8C857B] mt-1">
-                    Clientes felices
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+        </>
+      ) : (
+        <>
+          <SplitBotanicalHero
+            scrollY={scrollY}
+            mousePos={mousePos}
+            cartCount={totalCartItems}
+            onOpenCart={() => setIsCartOpen(true)}
+            onExploreClick={() => {
+              document
+                .getElementById("catalogo-floral")
+                ?.scrollIntoView({ behavior: "smooth" });
+            }}
+          />
+          <FastOrderEditorialHero
+            scrollY={Math.max(0, scrollY - 750)}
+            mousePos={mousePos}
+            cartCount={totalCartItems}
+            onOpenCart={() => setIsCartOpen(true)}
+            onAddToCart={handleAddToCart}
+          />
+        </>
+      )}
 
       {/* =====================================================================
-          2. "ENCUENTRA TU RAMO DE FLORES PERFECTO" ("Find your perfect bouquet flower")
-          Exact 2-Column Editorial Split Header + 3 Arches with Curved Gold Badges
+          CONTINUATION SECTION 1: CATÁLOGO DE RAMOS POP-OUT CON ENTREGA EN 20 MIN
+          Combines Design 2's Wireframe Grid, Pink Headline Highlight & Pop-Out Pastel Cards
+          with Design 1's Lavender (#D3B5ED) and Pistachio-Lime (#ABC94C) Palette
       ===================================================================== */}
       <section
-        id="catalogo"
-        className="py-20 lg:py-28 bg-white relative overflow-hidden"
+        id="catalogo-floral"
+        className="py-24 lg:py-32 bg-[#F7F6F2] relative overflow-hidden"
       >
-        <div className="max-w-[1240px] mx-auto px-6 sm:px-10 lg:px-14">
-          {/* Top 2-Column Split Header */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start mb-14 lg:mb-16">
-            {/* Left Heading */}
-            <div className="lg:col-span-6">
-              <span className="text-[10.5px] uppercase tracking-[0.3em] text-[#8C857B] font-medium block mb-3">
-                TIPO DE RAMO
-              </span>
-              <h2 className="font-editorial text-[42px] sm:text-[52px] leading-[1.08] tracking-[-0.015em] text-[#2E2A27] font-normal">
-                Encuentra tu ramo
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 bg-wireframe-grid opacity-85"
+        />
+
+        <div className="max-w-[1280px] mx-auto px-6 sm:px-10 lg:px-16 relative z-10">
+          {/* Header Row */}
+          <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 mb-20">
+            <div>
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-white shadow-xs mb-4 text-[11px] font-bold uppercase tracking-[0.2em] text-[#355E4B]">
+                <span>✳</span>
+                <span>COLECCIÓN DE ENTREGA INMEDIATA</span>
+              </div>
+              <h2 className="text-[42px] sm:text-[56px] leading-[1.08] tracking-[-0.02em] text-[#12131A]">
+                <span className="inline-block relative font-display-serif font-bold mr-3">
+                  <span
+                    aria-hidden="true"
+                    className="pink-word-highlight absolute right-[-4px] top-[15%] bottom-[10%] w-[72%] -z-10"
+                  />
+                  Ramos
+                </span>
+                <span className="font-thin-serif font-light text-[46px] sm:text-[62px]">
+                  Frescos
+                </span>
                 <br />
-                de flores perfecto
+                <span className="font-display-serif font-bold">
+                  Listos Para Enviar.
+                </span>
               </h2>
             </div>
 
-            {/* Right Description + "Ver Todos" Button */}
-            <div className="lg:col-span-6 lg:pl-8 pt-2 lg:pt-6">
-              <p className="text-[13.5px] sm:text-[14px] leading-[1.75] text-[#7E776E] max-w-[430px]">
-                Cada mañana seleccionamos flores frescas de invernadero para
-                crear arreglos botánicos irrepetibles, listos para entregarse en
-                la puerta de esa persona especial en 30 minutos.
-              </p>
-              <div className="mt-6 flex flex-wrap items-center gap-4">
+            {/* Category Filters */}
+            <div className="flex flex-wrap items-center gap-2.5">
+              {[
+                { id: "todos", label: "Todos los Ramos" },
+                { id: "kraft", label: "Línea Kraft & Canela" },
+                { id: "lavanda", label: "Colección Lavanda" },
+                { id: "pistacho", label: "Colección Pistacho" },
+                { id: "florero", label: "Con Florero" },
+              ].map((cat) => (
                 <button
-                  onClick={() => setShowAllBouquets(!showAllBouquets)}
-                  className="bg-[#4A443F] text-[#F6EFE2] text-[12px] px-8 py-3 hover:bg-[#2E2A27] transition-colors cursor-pointer"
+                  key={cat.id}
+                  onClick={() => setSelectedCategory(cat.id)}
+                  className={`px-5 py-3 text-xs font-semibold transition-all cursor-pointer ${
+                    selectedCategory === cat.id
+                      ? "bg-[#0F111A] text-white shadow-lg"
+                      : "bg-white text-[#3F4048] hover:bg-[#FFF083] hover:text-[#12131A]"
+                  }`}
                 >
-                  {showAllBouquets ? "Ver Destacados" : "Ver Todos"}
+                  {cat.label}
                 </button>
-
-                {/* Category Filter Pills */}
-                <div className="flex flex-wrap items-center gap-2">
-                  {[
-                    { id: "todos", label: "Todos" },
-                    { id: "romántico", label: "Románticos" },
-                    { id: "aniversario", label: "Aniversario" },
-                    { id: "cumpleaños", label: "Cumpleaños" },
-                  ].map((cat) => (
-                    <button
-                      key={cat.id}
-                      onClick={() => setActiveCategory(cat.id)}
-                      className={`text-[11px] px-3 py-1.5 border transition-colors cursor-pointer ${
-                        activeCategory === cat.id
-                          ? "border-[#A8762A] bg-[#F6EFE2] text-[#2E2A27] font-medium"
-                          : "border-[#EAE5DD] text-[#8C857B] hover:border-[#C48F3A]"
-                      }`}
-                    >
-                      {cat.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
+              ))}
             </div>
           </div>
 
-          {/* 3-Arch Product Grid (Matches exact proportions & curved gold badges) */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-10 lg:gap-12">
-            {displayedBouquets.map((bouquet, index) => {
-              // Subtle differential scroll parallax per column
-              const colParallax =
-                index % 3 === 1
-                  ? catalogScrollOffset * -0.04
-                  : catalogScrollOffset * 0.025;
+          {/* 3-Column Pop-Out Product Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-20 pt-10">
+            {filteredProducts.map((product, idx) => {
+              const offset =
+                idx % 2 === 0
+                  ? catalogParallax * -0.03
+                  : catalogParallax * 0.03;
 
               return (
                 <article
-                  key={bouquet.id}
+                  key={product.id}
                   style={{
-                    transform: `translate3d(0, ${colParallax}px, 0)`,
+                    backgroundColor: product.bgCard,
+                    transform: `translate3d(0, ${offset}px, 0)`,
                   }}
-                  className="group flex flex-col items-center transition-transform duration-300 ease-out"
+                  className="relative p-7 pt-44 flex flex-col justify-between transition-transform duration-300 ease-out group shadow-[0_14px_35px_rgba(18,19,26,0.04)]"
                 >
-                  <div className="relative w-full max-w-[330px] aspect-[1/1.08] flex items-end justify-center">
-                    {/* Curved Gold SVG Badge ("Más Vendido" / "Más Buscado") along Top-Left Arc */}
-                    {bouquet.curvedBadge && (
-                      <div className="absolute -top-3.5 -left-3.5 w-[260px] h-[260px] z-20 pointer-events-none">
-                        <CurvedArchText
-                          id={`badge-${bouquet.id}`}
-                          text={bouquet.curvedBadge}
-                          variant="top-left-gold"
-                        />
-                      </div>
-                    )}
-
-                    {/* Price Pill on Top-Right Hover */}
-                    <div className="absolute top-5 right-5 z-20 bg-white/95 backdrop-blur-xs px-3 py-1 text-xs font-editorial font-semibold text-[#2E2A27] shadow-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      ${bouquet.price} USD
-                    </div>
-
-                    {/* Light Alabaster Gray Arch (#F4F4F4) */}
-                    <div className="w-full h-full bg-[#F4F4F4] arch-top overflow-hidden flex items-end justify-center relative pt-8 px-4 transition-colors duration-500 group-hover:bg-[#EFECE6]">
-                      <img
-                        src={bouquet.image}
-                        alt={bouquet.name}
-                        className="w-[88%] h-[92%] object-contain object-bottom transition-transform duration-700 ease-out group-hover:scale-108"
-                      />
-                    </div>
+                  {/* Pop-Out Bouquet Cutout breaking above the top border of the pastel card */}
+                  <div className="absolute -top-16 inset-x-0 h-56 flex items-center justify-center pointer-events-none">
+                    <img
+                      src={product.image}
+                      alt={product.name}
+                      className="h-full w-auto object-contain drop-shadow-[0_18px_24px_rgba(18,19,26,0.16)] transition-transform duration-500 group-hover:scale-108 group-hover:-translate-y-2"
+                    />
                   </div>
 
-                  {/* Subtle Bouquet Name & Price on Hover / Subtitle */}
-                  <div className="mt-5 text-center">
-                    <p className="font-editorial text-xl text-[#2E2A27] opacity-85 group-hover:opacity-100 transition-opacity">
-                      {bouquet.name}
-                    </p>
-                    <p className="text-[11px] text-[#8C857B] mt-0.5">
-                      {bouquet.stems} tallos frescos • ${bouquet.price} USD
-                    </p>
-                  </div>
-
-                  {/* Exact "SHOP NOW ->" ("COMPRAR AHORA ->") Spaced Link */}
-                  <button
-                    onClick={() => handleAddToCart(bouquet)}
-                    className="mt-3.5 text-[10.5px] uppercase tracking-[0.28em] text-[#4A443F] hover:text-[#A8762A] font-medium flex items-center gap-3 transition-colors cursor-pointer group/btn"
+                  {/* Top-Right Express Badge */}
+                  <span
+                    style={{ backgroundColor: product.tagColor }}
+                    className="absolute top-4 right-4 text-white text-[10px] font-bold uppercase tracking-[0.16em] px-3 py-1"
                   >
-                    <span>COMPRAR AHORA</span>
-                    <span className="text-xs tracking-normal transition-transform duration-300 group-hover/btn:translate-x-1.5">
-                      →
-                    </span>
-                  </button>
+                    {product.accentTag}
+                  </span>
+
+                  {/* Card Details */}
+                  <div className="bg-white/90 backdrop-blur-xs p-5 mt-2 space-y-3">
+                    <div className="flex items-center justify-between text-[11px] text-[#5B5C66]">
+                      <span>⚡ Entrega en {product.deliveryMinutes} min</span>
+                      <span className="text-[#F16B58] font-bold">★ 4.9</span>
+                    </div>
+                    <h3 className="font-display-serif text-xl font-bold text-[#12131A]">
+                      {product.name}
+                    </h3>
+                    <p className="text-xs text-[#5B5C66] leading-relaxed">
+                      {product.subtitle}
+                    </p>
+                    <div className="pt-2 flex items-center justify-between border-t border-[#ECEAE4]">
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-xl font-extrabold text-[#12131A]">
+                          ${product.price}.00
+                        </span>
+                        <span className="text-xs text-[#8E8F99] line-through">
+                          ${product.oldPrice}.00
+                        </span>
+                      </div>
+                      <button
+                        onClick={() =>
+                          handleAddToCart({
+                            id: product.id,
+                            name: product.name,
+                            price: product.price,
+                            image: product.image,
+                          })
+                        }
+                        className="bg-[#0F111A] text-white text-xs font-medium px-5 py-2.5 flex items-center gap-2 hover:bg-[#F28B30] transition-colors cursor-pointer"
+                      >
+                        <span>Comprar</span>
+                        <span>↗</span>
+                      </button>
+                    </div>
+                  </div>
                 </article>
               );
             })}
@@ -637,769 +465,497 @@ export default function FloraliaLandingPage() {
       </section>
 
       {/* =====================================================================
-          3. "LOS MEJORES RAMOS DE ESTA SEMANA" ("Top bouquet on this week")
-          Exact 3-Column Asymmetric Bento Grid of 5 Directional Arches
-      ===================================================================== */}
-      <section className="py-16 lg:py-24 bg-white relative">
-        <div className="max-w-[1240px] mx-auto px-6 sm:px-10 lg:px-14">
-          {/* Centered Header */}
-          <div className="text-center max-w-xl mx-auto mb-14">
-            <span className="text-[10.5px] uppercase tracking-[0.3em] text-[#8C857B] font-medium block mb-2.5">
-              TIPO DE RAMO
-            </span>
-            <h2 className="font-editorial text-[40px] sm:text-[48px] leading-[1.1] text-[#2E2A27] font-normal">
-              Los mejores ramos de esta semana
-            </h2>
-            <p className="mt-3 text-[13px] text-[#8C857B]">
-              Selección semanal curada por nuestros floristas según la floración
-              más fresca de cada jardín.
-            </p>
-          </div>
-
-          {/* 3-Column Bento Grid matching exact directional curves of reference */}
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-6 lg:gap-8 items-stretch">
-            {/* LEFT COLUMN: 2 Stacked Cards */}
-            <div className="md:col-span-4 flex flex-col gap-6 lg:gap-8 justify-between">
-              {/* Top-Left Card: Rounded on the RIGHT side (arch-right) */}
-              <div
-                onClick={() =>
-                  handleAddToCart({
-                    id: WEEKLY_BENTO_BOUQUETS.leftTop.id,
-                    name: WEEKLY_BENTO_BOUQUETS.leftTop.name,
-                    price: WEEKLY_BENTO_BOUQUETS.leftTop.price,
-                    image: WEEKLY_BENTO_BOUQUETS.leftTop.image,
-                  })
-                }
-                className="group relative bg-[#F4F4F4] arch-right h-[210px] sm:h-[225px] overflow-hidden flex items-center justify-start cursor-pointer hover:bg-[#EFECE6] transition-colors"
-              >
-                <img
-                  src={WEEKLY_BENTO_BOUQUETS.leftTop.image}
-                  alt={WEEKLY_BENTO_BOUQUETS.leftTop.name}
-                  className="w-[82%] h-[92%] object-contain object-left transition-transform duration-700 group-hover:scale-105"
-                />
-                <div className="absolute bottom-3 left-4 bg-white/90 backdrop-blur-xs px-3 py-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <p className="font-editorial text-sm text-[#2E2A27]">
-                    {WEEKLY_BENTO_BOUQUETS.leftTop.name} • $
-                    {WEEKLY_BENTO_BOUQUETS.leftTop.price}
-                  </p>
-                </div>
-              </div>
-
-              {/* Bottom-Left Card: Rounded on TOP / Arch */}
-              <div
-                onClick={() =>
-                  handleAddToCart({
-                    id: WEEKLY_BENTO_BOUQUETS.leftBottom.id,
-                    name: WEEKLY_BENTO_BOUQUETS.leftBottom.name,
-                    price: WEEKLY_BENTO_BOUQUETS.leftBottom.price,
-                    image: WEEKLY_BENTO_BOUQUETS.leftBottom.image,
-                  })
-                }
-                className="group relative bg-[#F4F4F4] rounded-tr-[110px] h-[210px] sm:h-[225px] overflow-hidden flex items-end justify-start cursor-pointer hover:bg-[#EFECE6] transition-colors"
-              >
-                <img
-                  src={WEEKLY_BENTO_BOUQUETS.leftBottom.image}
-                  alt={WEEKLY_BENTO_BOUQUETS.leftBottom.name}
-                  className="w-[80%] h-[92%] object-contain object-left-bottom transition-transform duration-700 group-hover:scale-105"
-                />
-                <div className="absolute bottom-3 left-4 bg-white/90 backdrop-blur-xs px-3 py-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <p className="font-editorial text-sm text-[#2E2A27]">
-                    {WEEKLY_BENTO_BOUQUETS.leftBottom.name} • $
-                    {WEEKLY_BENTO_BOUQUETS.leftBottom.price}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* CENTER COLUMN: 1 Tall Full-Height Arch */}
-            <div className="md:col-span-4 flex">
-              <div
-                onClick={() =>
-                  handleAddToCart({
-                    id: WEEKLY_BENTO_BOUQUETS.centerTall.id,
-                    name: WEEKLY_BENTO_BOUQUETS.centerTall.name,
-                    price: WEEKLY_BENTO_BOUQUETS.centerTall.price,
-                    image: WEEKLY_BENTO_BOUQUETS.centerTall.image,
-                  })
-                }
-                style={{
-                  transform: `translate3d(0, ${bentoScrollOffset * -0.04}px, 0)`,
-                }}
-                className="group relative w-full bg-[#F4F4F4] arch-top min-h-[430px] sm:min-h-[475px] overflow-hidden flex items-end justify-center pt-8 px-4 cursor-pointer hover:bg-[#EFECE6] transition-all"
-              >
-                <img
-                  src={WEEKLY_BENTO_BOUQUETS.centerTall.image}
-                  alt={WEEKLY_BENTO_BOUQUETS.centerTall.name}
-                  className="w-[92%] h-[95%] object-contain object-bottom transition-transform duration-700 group-hover:scale-105"
-                />
-                <div className="absolute bottom-4 inset-x-6 bg-white/95 backdrop-blur-xs py-2.5 px-4 text-center opacity-0 group-hover:opacity-100 transition-opacity shadow-sm">
-                  <p className="font-editorial text-lg text-[#2E2A27]">
-                    {WEEKLY_BENTO_BOUQUETS.centerTall.name}
-                  </p>
-                  <p className="text-[10px] uppercase tracking-[0.22em] text-[#A8762A] font-semibold">
-                    Añadir a la cesta • ${WEEKLY_BENTO_BOUQUETS.centerTall.price} USD
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* RIGHT COLUMN: 2 Stacked Directional Arch Cards */}
-            <div className="md:col-span-4 flex flex-col gap-6 lg:gap-8 justify-between">
-              {/* Top-Right Card: Rounded on the LEFT side (arch-left) */}
-              <div
-                onClick={() =>
-                  handleAddToCart({
-                    id: WEEKLY_BENTO_BOUQUETS.rightTop.id,
-                    name: WEEKLY_BENTO_BOUQUETS.rightTop.name,
-                    price: WEEKLY_BENTO_BOUQUETS.rightTop.price,
-                    image: WEEKLY_BENTO_BOUQUETS.rightTop.image,
-                  })
-                }
-                className="group relative bg-[#F4F4F4] arch-left h-[210px] sm:h-[225px] overflow-hidden flex items-center justify-center cursor-pointer hover:bg-[#EFECE6] transition-colors"
-              >
-                <img
-                  src={WEEKLY_BENTO_BOUQUETS.rightTop.image}
-                  alt={WEEKLY_BENTO_BOUQUETS.rightTop.name}
-                  className="w-[78%] h-[88%] object-contain transition-transform duration-700 group-hover:scale-105"
-                />
-                <div className="absolute bottom-3 right-4 bg-white/90 backdrop-blur-xs px-3 py-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <p className="font-editorial text-sm text-[#2E2A27]">
-                    {WEEKLY_BENTO_BOUQUETS.rightTop.name} • $
-                    {WEEKLY_BENTO_BOUQUETS.rightTop.price}
-                  </p>
-                </div>
-              </div>
-
-              {/* Bottom-Right Card: Rounded on the RIGHT side (arch-right) */}
-              <div
-                onClick={() =>
-                  handleAddToCart({
-                    id: WEEKLY_BENTO_BOUQUETS.rightBottom.id,
-                    name: WEEKLY_BENTO_BOUQUETS.rightBottom.name,
-                    price: WEEKLY_BENTO_BOUQUETS.rightBottom.price,
-                    image: WEEKLY_BENTO_BOUQUETS.rightBottom.image,
-                  })
-                }
-                className="group relative bg-[#F4F4F4] arch-right h-[210px] sm:h-[225px] overflow-hidden flex items-end justify-center cursor-pointer hover:bg-[#EFECE6] transition-colors"
-              >
-                <img
-                  src={WEEKLY_BENTO_BOUQUETS.rightBottom.image}
-                  alt={WEEKLY_BENTO_BOUQUETS.rightBottom.name}
-                  className="w-[82%] h-[92%] object-contain object-bottom transition-transform duration-700 group-hover:scale-105"
-                />
-                <div className="absolute bottom-3 left-4 bg-white/90 backdrop-blur-xs px-3 py-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <p className="font-editorial text-sm text-[#2E2A27]">
-                    {WEEKLY_BENTO_BOUQUETS.rightBottom.name} • $
-                    {WEEKLY_BENTO_BOUQUETS.rightBottom.price}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* =====================================================================
-          4. CONTINUATION SECTION: "EL ARTE DEL DELIVERY FLORAL & ATELIER A MEDIDA"
-          Coherent Editorial Continuation in Warm Champagne Cream (#F6EFE2)
+          CONTINUATION SECTION 2: FUSIÓN DUAL 50/50 — ATELIER PERSONALIZADO & DELIVERY EXPRESS
+          Left Half: Lavender (#D3B5ED) Custom Bouquet Builder
+          Right Half: Pistachio-Lime (#ABC94C) Express Delivery Route & 20% On-Time Guarantee
       ===================================================================== */}
       <section
-        id="servicios"
-        className="py-20 lg:py-28 bg-[#F6EFE2] relative overflow-hidden"
+        id="experiencia-dual"
+        className="relative grid grid-cols-1 lg:grid-cols-2 overflow-hidden"
       >
-        <div className="max-w-[1240px] mx-auto px-6 sm:px-10 lg:px-14">
-          {/* Header */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-end mb-16">
-            <div className="lg:col-span-7">
-              <span className="text-[10.5px] uppercase tracking-[0.3em] text-[#A8762A] font-semibold block mb-3">
-                DEL JARDÍN A TU PUERTA EN 30 MINUTOS
+        {/* LEFT HALF: Lavender (#D3B5ED) Personalizador de Ramos */}
+        <div className="relative bg-[#D3B5ED] p-8 sm:p-14 lg:p-20 flex flex-col justify-between overflow-hidden">
+          {/* Watermark Typography */}
+          <span
+            aria-hidden="true"
+            className="pointer-events-none select-none font-thin-serif text-[160px] text-white/20 absolute -bottom-10 -left-6 leading-none"
+          >
+            atelier
+          </span>
+
+          <div className="relative z-10 space-y-6 max-w-xl">
+            <span className="inline-block text-[10.5px] uppercase tracking-[0.26em] bg-white/35 text-[#12131A] font-bold px-3.5 py-1.5">
+              DISEÑA TU RAMO A MEDIDA
+            </span>
+            <h2 className="font-thin-serif text-[44px] sm:text-[56px] leading-[1.05] text-white">
+              Crea una combinación{" "}
+              <span className="font-display-serif font-bold text-[#12131A]">
+                única para regalar.
               </span>
-              <h2 className="font-editorial text-[40px] sm:text-[50px] leading-[1.08] text-[#2E2A27] font-normal">
-                Cómo cuidamos cada pétalo en nuestro servicio de entrega
-              </h2>
-            </div>
-            <div className="lg:col-span-5">
-              <p className="text-[13.5px] leading-[1.75] text-[#7E776E]">
-                Combinamos floristería artesanal de autor con logística express
-                climatizada para que tu ramo llegue tan fresco como en el
-                instante en que fue cortado.
-              </p>
-            </div>
-          </div>
+            </h2>
+            <p className="text-sm text-[#2A2333] leading-relaxed">
+              Selecciona tus flores favoritas, el número de tallos y el aroma
+              botánico. Nuestros maestros floristas lo envuelven al instante.
+            </p>
 
-          {/* 4 Arch Process Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-20">
-            {DELIVERY_STEPS.map((item) => (
-              <div
-                key={item.step}
-                className="bg-white/85 backdrop-blur-xs p-7 border border-[#E6DEC8] hover:border-[#A8762A] transition-all duration-300 group flex flex-col justify-between"
-              >
-                <div>
-                  <div className="w-12 h-14 bg-[#DDD7D0] arch-top flex items-center justify-center font-editorial text-2xl text-[#2E2A27] mb-6 group-hover:bg-[#A8762A] group-hover:text-white transition-colors">
-                    {item.step}
-                  </div>
-                  <p className="text-[10.5px] uppercase tracking-[0.22em] text-[#A8762A] font-medium">
-                    {item.subtitle}
-                  </p>
-                  <h3 className="font-editorial text-2xl text-[#2E2A27] mt-1 mb-3">
-                    {item.title}
-                  </h3>
-                </div>
-                <p className="text-[13px] leading-[1.7] text-[#7E776E]">
-                  {item.description}
-                </p>
-              </div>
-            ))}
-          </div>
-
-          {/* Interactive Custom Bouquet Builder ("Diseña tu Ramo a Medida") */}
-          <div className="bg-white p-8 sm:p-12 border border-[#E5DEC9] shadow-[0_20px_50px_rgba(46,42,39,0.04)] grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
-            <div className="lg:col-span-7 space-y-6">
+            {/* Builder Controls */}
+            <div className="bg-white p-6 sm:p-8 shadow-xl space-y-5">
               <div>
-                <span className="text-[10.5px] uppercase tracking-[0.28em] text-[#A8762A] font-semibold">
-                  ATELIER INTERACTIVO
-                </span>
-                <h3 className="font-editorial text-3xl sm:text-4xl text-[#2E2A27] mt-1">
-                  Personaliza tu ramo ideal en 3 pasos
-                </h3>
-                <p className="text-[13px] text-[#8C857B] mt-2">
-                  Elige la flor principal, el número de tallos y el acabado del
-                  empaque. Nuestros floristas lo armarán al instante.
-                </p>
+                <label className="block text-[11px] font-bold uppercase tracking-[0.18em] text-[#5B5C66] mb-2">
+                  1. Selección Botánica Principal
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                  {[
+                    "Rosas Blancas & Kraft",
+                    "Escabiosa & Lavanda",
+                    "Tulipanes & Pistacho",
+                  ].map((opt) => (
+                    <button
+                      key={opt}
+                      type="button"
+                      onClick={() => setBuilderStyle(opt)}
+                      className={`py-2.5 px-3 text-xs font-semibold border text-left transition-all cursor-pointer ${
+                        builderStyle === opt
+                          ? "bg-[#0F111A] text-white border-[#0F111A]"
+                          : "bg-[#F7F6F2] text-[#12131A] border-[#E5E4DC]"
+                      }`}
+                    >
+                      {opt}
+                    </button>
+                  ))}
+                </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                {/* Step 1: Flower Selection */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[11px] uppercase tracking-[0.18em] text-[#6E675F] mb-2">
-                    1. Flor Principal
-                  </label>
-                  <select
-                    value={customFlower}
-                    onChange={(e) => setCustomFlower(e.target.value)}
-                    className="w-full p-3 text-xs bg-[#F6EFE2] text-[#2E2A27] border border-[#DDD7D0] focus:outline-none focus:border-[#A8762A]"
-                  >
-                    <option value="Rosas Blancas de Jardín">
-                      Rosas Blancas de Jardín
-                    </option>
-                    <option value="Rosas Rojas Terciopelo">
-                      Rosas Rojas Terciopelo
-                    </option>
-                    <option value="Tulipanes Rosa Pastel">
-                      Tulipanes Rosa Pastel
-                    </option>
-                    <option value="Claveles Bicolores Aurora">
-                      Claveles Bicolores Aurora
-                    </option>
-                    <option value="Girasoles Dorados">Girasoles Dorados</option>
-                  </select>
-                </div>
-
-                {/* Step 2: Stem Count */}
-                <div>
-                  <label className="block text-[11px] uppercase tracking-[0.18em] text-[#6E675F] mb-2">
-                    2. Cantidad de Tallos
+                  <label className="block text-[11px] font-bold uppercase tracking-[0.18em] text-[#5B5C66] mb-2">
+                    2. Tamaño del Ramo (Tallos)
                   </label>
                   <div className="flex gap-2">
-                    {[12, 24, 36].map((count) => (
+                    {[12, 24, 36].map((stems) => (
                       <button
-                        key={count}
+                        key={stems}
                         type="button"
-                        onClick={() => setCustomStems(count)}
-                        className={`flex-1 py-2.5 text-xs border transition-colors cursor-pointer ${
-                          customStems === count
-                            ? "bg-[#4A443F] text-[#F6EFE2] border-[#4A443F]"
-                            : "bg-[#F6EFE2] text-[#2E2A27] border-[#DDD7D0]"
+                        onClick={() => setBuilderSize(stems)}
+                        className={`flex-1 py-2.5 text-xs font-bold border transition-all cursor-pointer ${
+                          builderSize === stems
+                            ? "bg-[#CE9FFC] text-[#12131A] border-[#12131A]"
+                            : "bg-[#F7F6F2] text-[#12131A] border-[#E5E4DC]"
                         }`}
                       >
-                        {count}
+                        {stems} tallos
                       </button>
                     ))}
                   </div>
                 </div>
 
-                {/* Step 3: Wrap Style */}
                 <div>
-                  <label className="block text-[11px] uppercase tracking-[0.18em] text-[#6E675F] mb-2">
-                    3. Envoltura
+                  <label className="block text-[11px] font-bold uppercase tracking-[0.18em] text-[#5B5C66] mb-2">
+                    3. Nota Aromática
                   </label>
                   <select
-                    value={customWrap}
-                    onChange={(e) => setCustomWrap(e.target.value)}
-                    className="w-full p-3 text-xs bg-[#F6EFE2] text-[#2E2A27] border border-[#DDD7D0] focus:outline-none focus:border-[#A8762A]"
+                    value={builderAroma}
+                    onChange={(e) => setBuilderAroma(e.target.value)}
+                    className="w-full py-2.5 px-3 text-xs font-medium bg-[#F7F6F2] border border-[#E5E4DC] focus:outline-none"
                   >
-                    <option value="Lino Champán Natural">
-                      Lino Champán Natural
+                    <option value="Canela & Eucalipto Fresco">
+                      Canela & Eucalipto Fresco
                     </option>
-                    <option value="Papel Seda Negro Obsidiana">
-                      Papel Seda Negro Obsidiana
+                    <option value="Esencia de Lavanda Francesa">
+                      Esencia de Lavanda Francesa
                     </option>
-                    <option value="Yute Botánico con Cinta Dorada">
-                      Yute con Cinta Dorada
+                    <option value="Azahar & Cítricos Verdes">
+                      Azahar & Cítricos Verdes
                     </option>
                   </select>
                 </div>
               </div>
 
-              <div className="pt-2 flex flex-wrap items-center justify-between gap-4 border-t border-[#F0EAE0]">
+              <div className="pt-3 border-t border-[#ECEAE4] flex flex-wrap items-center justify-between gap-4">
                 <div>
-                  <span className="text-xs text-[#8C857B] block">
-                    Precio de tu creación personalizada:
+                  <span className="text-[11px] text-[#7A7B85] block">
+                    Total con 20% Descuento Aplicado:
                   </span>
-                  <span className="font-editorial text-3xl text-[#2E2A27] font-semibold">
-                    ${customStems * 2 + 12}.00 USD
+                  <span className="text-2xl font-extrabold text-[#12131A]">
+                    ${builderSize * 1.5 + 10}.00 USD
                   </span>
                 </div>
                 <button
                   onClick={() =>
                     handleAddToCart({
-                      id: `custom-${customFlower}-${customStems}`,
-                      name: `Ramo a Medida: ${customFlower} (${customStems} tallos)`,
-                      price: customStems * 2 + 12,
-                      image: "/images/flowers/hero-white-roses.png",
+                      id: `custom-${builderStyle}-${builderSize}`,
+                      name: `Ramo Autor: ${builderStyle} (${builderSize} tallos)`,
+                      price: builderSize * 1.5 + 10,
+                      image: builderStyle.includes("Escabiosa")
+                        ? "/images/bouquet-lavender.png"
+                        : builderStyle.includes("Tulipanes")
+                        ? "/images/bouquet-citrus.png"
+                        : "/images/kraft-white-roses.png",
                     })
                   }
-                  className="bg-[#4A443F] text-[#F6EFE2] text-xs uppercase tracking-[0.2em] px-8 py-4 hover:bg-[#A8762A] transition-colors cursor-pointer"
+                  className="bg-[#0F111A] text-white text-xs font-semibold px-7 py-3.5 hover:bg-[#F28B30] transition-colors cursor-pointer"
                 >
-                  Encargar Mi Ramo Personalizado →
+                  Añadir Ramo Personalizado ↗
                 </button>
               </div>
             </div>
+          </div>
+        </div>
 
-            {/* Preview Arch on Right */}
-            <div className="lg:col-span-5 flex flex-col items-center">
-              <div className="w-56 h-68 bg-[#F6EFE2] arch-top flex items-end justify-center p-4 relative">
-                <img
-                  src={
-                    customFlower.includes("Rojas")
-                      ? "/images/flowers/bouquet-red-roses.png"
-                      : customFlower.includes("Tulipanes")
-                      ? "/images/flowers/bouquet-pink-tulips.png"
-                      : customFlower.includes("Claveles")
-                      ? "/images/flowers/bouquet-carnations.png"
-                      : customFlower.includes("Girasoles")
-                      ? "/images/flowers/bento-sunflowers.png"
-                      : "/images/flowers/hero-white-roses.png"
-                  }
-                  alt="Vista previa de tu ramo personalizado"
-                  className="w-full h-full object-contain object-bottom"
-                />
+        {/* RIGHT HALF: Pistachio-Lime (#ABC94C) Calculadora de Delivery en 20 Minutos */}
+        <div
+          id="envios-express"
+          className="relative bg-[#ABC94C] p-8 sm:p-14 lg:p-20 flex flex-col justify-between overflow-hidden"
+        >
+          {/* Watermark Typography */}
+          <span
+            aria-hidden="true"
+            className="pointer-events-none select-none font-thin-serif text-[160px] text-white/20 absolute -bottom-10 right-0 leading-none"
+          >
+            rápido
+          </span>
+
+          <div className="relative z-10 space-y-6 max-w-xl">
+            <span className="inline-block text-[10.5px] uppercase tracking-[0.26em] bg-[#12131A] text-[#FFF083] font-bold px-3.5 py-1.5">
+              GARANTÍA PUNTUAL • 20% DESCUENTO
+            </span>
+            <h2 className="font-display-serif text-[40px] sm:text-[52px] font-bold leading-[1.08] text-[#12131A]">
+              Del invernadero a tu puerta en{" "}
+              <span className="underline decoration-[#FFF083] decoration-4">
+                20 minutos.
+              </span>
+            </h2>
+            <p className="text-sm text-[#1F2909] leading-relaxed">
+              Verifica tu dirección de entrega inmediata y recibe un{" "}
+              <strong>20% de descuento automático</strong> en tu orden hoy
+              mismo.
+            </p>
+
+            {/* Interactive Express Address Checker */}
+            <div className="bg-[#0F111A] text-white p-6 sm:p-7 shadow-xl space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-[#FFF083] font-semibold uppercase tracking-wider">
+                  ⚡ Cobertura Express Activa
+                </span>
+                <span className="bg-[#F16B58] text-white text-[10px] font-bold px-2.5 py-1">
+                  18 - 22 MIN
+                </span>
               </div>
-              <p className="mt-3 text-xs text-[#8C857B] text-center">
-                {customFlower} • {customStems} tallos • {customWrap}
+              <div>
+                <label className="block text-xs text-white/70 mb-1.5">
+                  Ingresa tu calle o zona de entrega:
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={deliveryPostal}
+                    onChange={(e) => setDeliveryPostal(e.target.value)}
+                    className="flex-1 bg-white/10 border border-white/20 px-4 py-3 text-xs text-white focus:outline-none focus:border-[#FFF083]"
+                  />
+                  <button
+                    onClick={() => setIsCartOpen(true)}
+                    className="bg-[#F28B30] text-white text-xs font-bold px-5 py-3 hover:bg-[#FFF083] hover:text-[#12131A] transition-colors cursor-pointer shrink-0"
+                  >
+                    Pedir Ahora
+                  </button>
+                </div>
+              </div>
+              <p className="text-[11.5px] text-[#ABC94C]">
+                ✓ Repartidor floral climatizado disponible a 1.4 km de{" "}
+                <span className="underline">{deliveryPostal}</span>
+              </p>
+            </div>
+
+            {/* 4 Step Mini Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+              {DELIVERY_FEATURES.map((feat) => (
+                <div
+                  key={feat.num}
+                  className="bg-white/95 p-4 shadow-sm flex items-start gap-3.5"
+                >
+                  <span
+                    style={{ backgroundColor: feat.color }}
+                    className="w-8 h-8 font-display-serif font-bold text-sm text-[#12131A] flex items-center justify-center shrink-0"
+                  >
+                    {feat.num}
+                  </span>
+                  <div>
+                    <h3 className="text-xs font-bold text-[#12131A]">
+                      {feat.title}
+                    </h3>
+                    <p className="text-[11px] text-[#5B5C66] mt-1 leading-relaxed">
+                      {feat.desc}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* =====================================================================
+          CONTINUATION SECTION 3: FOOTER EDITORIAL COMPLETO
+      ===================================================================== */}
+      <footer className="bg-[#0F111A] text-white py-16">
+        <div className="max-w-[1280px] mx-auto px-6 sm:px-10 lg:px-16">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-10 pb-12 border-b border-white/10">
+            <div className="md:col-span-5 space-y-4">
+              <div className="flex items-center gap-2.5">
+                <svg
+                  className="w-6 h-6 text-[#FFF083]"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                >
+                  <path d="M6 18 C6 10 11 5 19 5 C19 13 14 18 6 18 Z" />
+                  <path d="M5 19 L19 5" strokeLinecap="round" />
+                </svg>
+                <span className="font-display-serif text-2xl tracking-[0.04em] font-medium uppercase">
+                  FLORA
+                </span>
+              </div>
+              <p className="text-xs text-white/65 max-w-sm leading-relaxed">
+                La belleza alrededor nuestro convertida en ramos inolvidables.
+                Diseño floral de autor y entrega ultrarrápida a domicilio con
+                20% de descuento en pedidos a tiempo.
+              </p>
+            </div>
+
+            <div className="md:col-span-4 space-y-2.5 text-xs">
+              <p className="text-[#FFF083] font-bold uppercase tracking-[0.2em] mb-3">
+                Navegación Rápida
+              </p>
+              <ul className="space-y-2 text-white/75">
+                <li>
+                  <a href="#inicio-rapido" className="hover:text-white">
+                    Inicio — Pide Flores Muy Rápido
+                  </a>
+                </li>
+                <li>
+                  <a href="#coleccion-botanica" className="hover:text-white">
+                    Colección Split — La Belleza Alrededor Nuestro
+                  </a>
+                </li>
+                <li>
+                  <a href="#catalogo-floral" className="hover:text-white">
+                    Catálogo Pop-Out de Ramos y Floreros
+                  </a>
+                </li>
+                <li>
+                  <a href="#experiencia-dual" className="hover:text-white">
+                    Atelier Personalizado & Envío en 20 Minutos
+                  </a>
+                </li>
+              </ul>
+            </div>
+
+            <div className="md:col-span-3 space-y-2.5 text-xs">
+              <p className="text-[#D3B5ED] font-bold uppercase tracking-[0.2em] mb-3">
+                Atención & Horarios
+              </p>
+              <p className="text-white/75">Lunes a Domingo: 6:00 AM – 11:00 PM</p>
+              <p className="text-white/75">Entrega Express Garantizada</p>
+              <p className="text-[#ABC94C] font-semibold pt-2">
+                ★ 4.9 / 5.0 (2M+ Reseñas de Clientes)
               </p>
             </div>
           </div>
-        </div>
-      </section>
 
-      {/* =====================================================================
-          5. "ENCUÉNTRANOS CERCA DE TU CIUDAD" ("Find us near your citys")
-          Exact Dark Obsidian Section (#110E0C) + 30 Min Badge + Pickup/Dropoff Inputs + Map
-      ===================================================================== */}
-      <section
-        id="nosotros"
-        className="bg-[#110E0C] text-[#F6EFE2] pt-20 pb-36 lg:pt-24 lg:pb-44 relative"
-      >
-        <div className="max-w-[1240px] mx-auto px-6 sm:px-10 lg:px-14">
-          {/* Centered Header */}
-          <div className="text-center max-w-xl mx-auto mb-14 lg:mb-16">
-            <span className="text-[10px] uppercase tracking-[0.32em] text-[#8E8274] font-medium block mb-2.5">
-              NUESTRA TIENDA
-            </span>
-            <h2 className="font-editorial text-[40px] sm:text-[48px] leading-[1.1] text-[#D5A362] font-normal">
-              Encuéntranos cerca de tu ciudad
-            </h2>
+          <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-white/50">
+            <p>© 2026 FLORA Atelier Botánico. Todos los derechos reservados.</p>
+            <p>Diseño adaptable Dual (Editorial Express + Split Artístico)</p>
           </div>
-
-          {/* 2-Column Content: Left Delivery Controls / Right Architectural Map */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-10 items-center">
-            {/* LEFT COLUMN: 30 Min Badge + Pickup Point + Drop off Location */}
-            <div className="lg:col-span-5 space-y-9 lg:pr-6">
-              {/* Top Row: "Tiempo de entrega" + White Rounded-Square Badge "30 Min" */}
-              <div className="flex items-center justify-between border-b border-white/10 pb-5">
-                <div>
-                  <p className="text-xs text-[#9C9286]">
-                    Tiempo estimado de entrega
-                  </p>
-                  <p className="text-[11px] text-[#D5A362] mt-0.5">
-                    Cobertura express garantizada
-                  </p>
-                </div>
-                {/* Exact White Rounded Pill/Square with "30 / Min" */}
-                <div className="w-12 h-12 rounded-xl bg-[#F4F4F4] text-[#110E0C] flex flex-col items-center justify-center shadow-lg shrink-0">
-                  <span className="text-[13px] font-bold leading-none">30</span>
-                  <span className="text-[9px] text-[#6E675F] font-medium mt-0.5">
-                    Min
-                  </span>
-                </div>
-              </div>
-
-              {/* Input Group 1: "Pickup point" -> "Punto de recogida" */}
-              <div className="space-y-2">
-                <label className="block font-editorial text-[22px] text-[#D5A362]">
-                  Punto de recogida
-                </label>
-                <div className="relative flex items-center border-b border-white/15 pb-2.5">
-                  <input
-                    type="text"
-                    value={pickupInput}
-                    onChange={(e) => setPickupInput(e.target.value)}
-                    className="w-full bg-transparent text-xs text-[#D8D0C5] placeholder-[#6E675F] focus:outline-none pr-7"
-                  />
-                  {/* Small Pin Icon at Right End of Line */}
-                  <svg
-                    className="w-4 h-4 text-[#8E8274] shrink-0"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.6"
-                    viewBox="0 0 24 24"
-                  >
-                    <path d="M12 21s-6-5.2-6-10a6 6 0 1 1 12 0c0 4.8-6 10-6 10z" />
-                    <circle cx="12" cy="11" r="2" />
-                  </svg>
-                </div>
-              </div>
-
-              {/* Input Group 2: "Drop off location" -> "Ubicación de entrega" */}
-              <div className="space-y-2">
-                <label className="block font-editorial text-[22px] text-[#D5A362]">
-                  Ubicación de entrega
-                </label>
-                <div className="relative flex items-center border-b border-white/15 pb-2.5">
-                  <input
-                    type="text"
-                    value={dropoffInput}
-                    onChange={(e) => setDropoffInput(e.target.value)}
-                    className="w-full bg-transparent text-xs text-[#D8D0C5] placeholder-[#6E675F] focus:outline-none pr-7"
-                  />
-                  {/* Small Pin Icon at Right End of Line */}
-                  <svg
-                    className="w-4 h-4 text-[#8E8274] shrink-0"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.6"
-                    viewBox="0 0 24 24"
-                  >
-                    <path d="M12 21s-6-5.2-6-10a6 6 0 1 1 12 0c0 4.8-6 10-6 10z" />
-                    <circle cx="12" cy="11" r="2" />
-                  </svg>
-                </div>
-              </div>
-
-              {/* Interactive Store Branch Selector Pills */}
-              <div className="pt-1">
-                <p className="text-[10px] uppercase tracking-[0.24em] text-[#8E8274] mb-2.5">
-                  SELECCIONA UNA SUCURSAL EN EL MAPA:
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {STORE_LOCATIONS.map((store) => (
-                    <button
-                      key={store.id}
-                      type="button"
-                      onClick={() => handleSelectStore(store.id)}
-                      className={`text-[11px] px-3 py-1.5 transition-colors cursor-pointer ${
-                        selectedStoreId === store.id
-                          ? "bg-[#A8762A] text-white font-medium"
-                          : "bg-white/5 text-[#B8AFA6] hover:bg-white/10"
-                      }`}
-                    >
-                      {store.city}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* RIGHT COLUMN: Custom Minimalist Light Architectural Street Map */}
-            <div className="lg:col-span-7 flex justify-center lg:justify-end">
-              <InteractiveMap
-                selectedStoreId={selectedStoreId}
-                onSelectStore={handleSelectStore}
-                stores={STORE_LOCATIONS}
-              />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* =====================================================================
-          6. "LO QUE DICEN NUESTROS CLIENTES" ("What they are saying")
-          Exact Overlapping Warm Golden-Ochre Banner (#9E6E28) with Concentric Arcs
-          and 2 Staggered Floating White Testimonial Cards
-      ===================================================================== */}
-      <section className="relative z-20 -mt-20 lg:-mt-24 pb-16">
-        <div className="max-w-[1240px] mx-auto px-6 sm:px-10 lg:px-14">
-          <div className="relative bg-[#9E6E28] text-white px-8 py-12 sm:px-12 lg:px-16 lg:py-14 overflow-visible shadow-xl">
-            {/* Decorative Concentric Semi-Circular Line Rings inside the Ochre Banner (matching reference) */}
-            <svg
-              aria-hidden="true"
-              className="pointer-events-none select-none absolute inset-0 w-full h-full overflow-hidden opacity-25"
-              viewBox="0 0 900 320"
-              fill="none"
-            >
-              <circle
-                cx="430"
-                cy="320"
-                r="130"
-                stroke="#F6EFE2"
-                strokeWidth="3"
-              />
-              <circle
-                cx="430"
-                cy="320"
-                r="175"
-                stroke="#F6EFE2"
-                strokeWidth="2"
-              />
-              <circle
-                cx="430"
-                cy="320"
-                r="220"
-                stroke="#F6EFE2"
-                strokeWidth="1.5"
-              />
-            </svg>
-
-            <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
-              {/* Left Text & Dark Button */}
-              <div className="lg:col-span-5 space-y-4">
-                <h2 className="font-editorial text-[36px] sm:text-[42px] leading-[1.1] text-[#F6EFE2] font-normal">
-                  Lo que dicen de nosotros
-                </h2>
-                <p className="text-[13px] leading-[1.7] text-[#F6EFE2]/80 max-w-xs">
-                  Más de un millón de entregas puntuales respaldan el cariño y
-                  la dedicación que ponemos en cada ramo.
-                </p>
-                <div className="pt-2">
-                  <a
-                    href="#catalogo"
-                    className="inline-block bg-[#4A443F] text-[#F6EFE2] text-[11.5px] px-7 py-3 hover:bg-[#2E2A27] transition-colors"
-                  >
-                    Pedir un Ramo
-                  </a>
-                </div>
-              </div>
-
-              {/* Right Staggered Floating White Cards (Overlapping Top & Bottom Edges!) */}
-              <div className="lg:col-span-7 relative flex flex-col gap-7 lg:-my-20">
-                {/* Top Card (Shifted to the right on desktop, just like reference) */}
-                <div className="relative bg-white text-[#2E2A27] p-6 sm:p-7 shadow-[0_18px_45px_rgba(17,14,12,0.16)] max-w-[420px] lg:ml-auto">
-                  {/* Overlapping Circular Avatar on Top-Left Edge */}
-                  <div
-                    style={{ background: TESTIMONIALS[0].avatarBg }}
-                    className="w-12 h-12 rounded-full border-2 border-white shadow-md flex items-center justify-center text-white font-editorial text-lg font-semibold absolute -top-6 left-6"
-                  >
-                    {TESTIMONIALS[0].initials}
-                  </div>
-
-                  <div className="flex items-center justify-between pt-2 mb-2.5">
-                    <div>
-                      <h3 className="font-editorial text-xl font-semibold text-[#2E2A27] leading-none">
-                        {TESTIMONIALS[0].name}
-                      </h3>
-                      <span className="text-[10.5px] text-[#8C857B]">
-                        {TESTIMONIALS[0].role}
-                      </span>
-                    </div>
-                    <div
-                      className="flex items-center gap-0.5 text-[#C48F3A] text-xs"
-                      aria-label="5 de 5 estrellas"
-                    >
-                      <span>★</span>
-                      <span>★</span>
-                      <span>★</span>
-                      <span>★</span>
-                      <span>★</span>
-                    </div>
-                  </div>
-                  <p className="text-[12.5px] leading-[1.65] text-[#6E675F]">
-                    {TESTIMONIALS[0].comment}
-                  </p>
-                </div>
-
-                {/* Bottom Card (Shifted to the left on desktop, overlapping bottom of ochre block) */}
-                <div className="relative bg-white text-[#2E2A27] p-6 sm:p-7 shadow-[0_18px_45px_rgba(17,14,12,0.14)] max-w-[420px] lg:mr-auto lg:ml-6">
-                  {/* Overlapping Circular Avatar on Top-Left Edge */}
-                  <div
-                    style={{ background: TESTIMONIALS[1].avatarBg }}
-                    className="w-12 h-12 rounded-full border-2 border-white shadow-md flex items-center justify-center text-white font-editorial text-lg font-semibold absolute -top-6 left-6"
-                  >
-                    {TESTIMONIALS[1].initials}
-                  </div>
-
-                  <div className="flex items-center justify-between pt-2 mb-2.5">
-                    <div>
-                      <h3 className="font-editorial text-xl font-semibold text-[#2E2A27] leading-none">
-                        {TESTIMONIALS[1].name}
-                      </h3>
-                      <span className="text-[10.5px] text-[#8C857B]">
-                        {TESTIMONIALS[1].role}
-                      </span>
-                    </div>
-                    <div
-                      className="flex items-center gap-0.5 text-[#C48F3A] text-xs"
-                      aria-label="5 de 5 estrellas"
-                    >
-                      <span>★</span>
-                      <span>★</span>
-                      <span>★</span>
-                      <span>★</span>
-                      <span>★</span>
-                    </div>
-                  </div>
-                  <p className="text-[12.5px] leading-[1.65] text-[#6E675F]">
-                    {TESTIMONIALS[1].comment}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* =====================================================================
-          7. CONTINUATION SECTION: PLANES DE PRECIOS Y SUSCRIPCIÓN FLORAL (#precios)
-      ===================================================================== */}
-      <section id="precios" className="py-20 lg:py-28 bg-white">
-        <div className="max-w-[1240px] mx-auto px-6 sm:px-10 lg:px-14">
-          <div className="text-center max-w-2xl mx-auto mb-16">
-            <span className="text-[10.5px] uppercase tracking-[0.3em] text-[#8C857B] font-medium block mb-2.5">
-              MEMBRESÍAS Y COLECCIONES
-            </span>
-            <h2 className="font-editorial text-[40px] sm:text-[48px] leading-[1.1] text-[#2E2A27] font-normal">
-              Planes pensados para cada ocasión especial
-            </h2>
-            <p className="mt-3 text-[13.5px] text-[#8C857B]">
-              Envía un detalle único hoy mismo o suscríbete para recibir flores
-              frescas de autor cada semana con envío prioritario sin costo.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
-            {SUBSCRIPTION_PLANS.map((plan) => (
-              <div
-                key={plan.id}
-                className={`p-8 sm:p-10 flex flex-col justify-between border transition-all duration-300 ${
-                  plan.highlighted
-                    ? "bg-[#F6EFE2] border-[#A8762A] shadow-[0_20px_50px_rgba(168,118,42,0.1)] lg:-translate-y-3"
-                    : "bg-white border-[#EAE5DD] hover:border-[#C48F3A]"
-                }`}
-              >
-                <div>
-                  <div className="flex items-center justify-between mb-6">
-                    <span className="text-[10px] uppercase tracking-[0.24em] px-3 py-1 bg-white text-[#A8762A] font-semibold border border-[#E5DEC9]">
-                      {plan.badge}
-                    </span>
-                    <span className="text-xs text-[#8C857B]">{plan.stems}</span>
-                  </div>
-
-                  <h3 className="font-editorial text-3xl text-[#2E2A27]">
-                    {plan.name}
-                  </h3>
-                  <p className="text-xs text-[#7E776E] mt-1.5">
-                    {plan.tagline}
-                  </p>
-
-                  <div className="my-7 pb-6 border-b border-[#E5DEC9] flex items-baseline gap-2">
-                    <span className="font-editorial text-5xl text-[#2E2A27] font-semibold">
-                      ${plan.price}
-                    </span>
-                    <span className="text-xs text-[#8C857B]">
-                      USD / {plan.period}
-                    </span>
-                  </div>
-
-                  <ul className="space-y-3.5 text-[13px] text-[#5E5850]">
-                    {plan.features.map((feat, i) => (
-                      <li key={i} className="flex items-start gap-2.5">
-                        <span className="text-[#A8762A] mt-0.5">✓</span>
-                        <span>{feat}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                <button
-                  onClick={() =>
-                    handleAddToCart({
-                      id: plan.id,
-                      name: plan.name,
-                      price: plan.price,
-                      image: "/images/flowers/bouquet-blush-tall.png",
-                    })
-                  }
-                  className={`mt-9 w-full py-3.5 text-xs uppercase tracking-[0.2em] transition-colors cursor-pointer ${
-                    plan.highlighted
-                      ? "bg-[#4A443F] text-[#F6EFE2] hover:bg-[#2E2A27]"
-                      : "bg-[#F4F4F4] text-[#2E2A27] hover:bg-[#4A443F] hover:text-[#F6EFE2]"
-                  }`}
-                >
-                  Elegir Este Plan →
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* =====================================================================
-          8. MINIMALIST EDITORIAL FOOTER (Matching Bottom of Reference Sheet 2)
-      ===================================================================== */}
-      <footer className="bg-white border-t border-[#F0EAE0] py-12">
-        <div className="max-w-[1240px] mx-auto px-6 sm:px-10 lg:px-14 flex flex-col sm:flex-row items-center justify-between gap-6">
-          <a
-            href="#inicio"
-            className="text-xl font-medium tracking-[-0.02em] text-[#2E2A27]"
-          >
-            Floralia
-          </a>
-
-          <nav className="flex flex-wrap items-center justify-center gap-7 text-[12px] text-[#8C857B]">
-            <a href="#inicio" className="hover:text-[#2E2A27] transition-colors">
-              Inicio
-            </a>
-            <a
-              href="#servicios"
-              className="hover:text-[#2E2A27] transition-colors"
-            >
-              Servicios
-            </a>
-            <a
-              href="#catalogo"
-              className="hover:text-[#2E2A27] transition-colors"
-            >
-              Listos para comprar
-            </a>
-            <a
-              href="#precios"
-              className="hover:text-[#2E2A27] transition-colors"
-            >
-              Precios
-            </a>
-            <a
-              href="#nosotros"
-              className="hover:text-[#2E2A27] transition-colors"
-            >
-              Nosotros
-            </a>
-          </nav>
-
-          <p className="text-[11.5px] text-[#9A9389]">
-            © 2026 Floralia Atelier. Todos los derechos
-            reservados.
-          </p>
         </div>
       </footer>
 
-      {/* Interactive Slide-Over Cart Drawer */}
-      <CartDrawer
-        isOpen={isCartOpen}
-        onClose={() => setIsCartOpen(false)}
-        items={cart}
-        onUpdateQty={handleUpdateQty}
-        onClearCart={() => setCart([])}
-      />
-    </div>
+      {/* =====================================================================
+          SLIDE-OVER EXPRESS SHOPPING CART DRAWER (With 20% On-Time Discount)
+      ===================================================================== */}
+      {isCartOpen && (
+        <div className="fixed inset-0 z-50 flex justify-end">
+          <div
+            className="fixed inset-0 bg-[#0F111A]/60 backdrop-blur-xs"
+            onClick={() => {
+              setOrderSuccess(false);
+              setIsCartOpen(false);
+            }}
+          />
+          <aside className="relative z-10 w-full max-w-md bg-[#F7F6F2] text-[#12131A] h-full shadow-2xl flex flex-col justify-between overflow-y-auto">
+            <div className="p-6 bg-white border-b border-[#E5E4DC] flex items-center justify-between sticky top-0 z-10">
+              <div>
+                <span className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#F28B30] block">
+                  20% DESCUENTO APLICADO
+                </span>
+                <h3 className="font-display-serif text-2xl font-bold">
+                  Tu Pedido Express
+                </h3>
+              </div>
+              <button
+                onClick={() => {
+                  setOrderSuccess(false);
+                  setIsCartOpen(false);
+                }}
+                className="w-9 h-9 bg-[#F7F6F2] text-[#12131A] font-bold flex items-center justify-center hover:bg-[#0F111A] hover:text-white transition-colors cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="p-6 flex-1 space-y-5">
+              {orderSuccess ? (
+                <div className="bg-white p-8 text-center space-y-4 border-2 border-[#ABC94C] my-8">
+                  <div className="w-14 h-14 mx-auto rounded-full bg-[#ABC94C] text-white flex items-center justify-center text-2xl font-bold">
+                    ✓
+                  </div>
+                  <h4 className="font-display-serif text-2xl font-bold">
+                    ¡Tu Ramo Va en Camino!
+                  </h4>
+                  <p className="text-xs text-[#5B5C66] leading-relaxed">
+                    Hemos activado tu{" "}
+                    <strong className="text-[#12131A]">
+                      20% de Descuento en Pedidos a Tiempo
+                    </strong>
+                    . Tu repartidor llegará en aproximadamente{" "}
+                    <strong className="text-[#12131A]">19 minutos</strong>.
+                  </p>
+                  <button
+                    onClick={() => {
+                      setOrderSuccess(false);
+                      setIsCartOpen(false);
+                    }}
+                    className="w-full py-3.5 bg-[#0F111A] text-white text-xs font-bold uppercase tracking-wider cursor-pointer"
+                  >
+                    Seguir Explorando
+                  </button>
+                </div>
+              ) : cart.length === 0 ? (
+                <div className="text-center py-16 space-y-4">
+                  <div className="w-20 h-20 mx-auto rounded-full bg-[#FFF083] flex items-center justify-center text-2xl">
+                    ✿
+                  </div>
+                  <p className="font-display-serif text-2xl font-bold">
+                    Tu bolsa está vacía
+                  </p>
+                  <p className="text-xs text-[#5B5C66] max-w-xs mx-auto">
+                    Agrega cualquier ramo o florero y recibe automáticamente un
+                    20% de descuento en tu orden a tiempo.
+                  </p>
+                </div>
+              ) : (
+                <>
+                  <div className="space-y-3">
+                    {cart.map((item) => (
+                      <div
+                        key={item.id}
+                        className="bg-white p-3.5 flex items-center gap-4 border border-[#E5E4DC]"
+                      >
+                        <div className="w-16 h-16 bg-[#FFF083] flex items-center justify-center shrink-0 p-1">
+                          <img
+                            src={item.image}
+                            alt={item.name}
+                            className="w-full h-full object-contain"
+                          />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="text-xs font-bold text-[#12131A] truncate">
+                            {item.name}
+                          </h4>
+                          <p className="text-xs text-[#F28B30] font-bold">
+                            ${item.price}.00
+                          </p>
+                          <div className="flex items-center gap-2.5 mt-1.5">
+                            <button
+                              onClick={() => handleUpdateQty(item.id, -1)}
+                              className="w-6 h-6 bg-[#F7F6F2] text-xs font-bold cursor-pointer"
+                            >
+                              -
+                            </button>
+                            <span className="text-xs font-bold">
+                              {item.quantity}
+                            </span>
+                            <button
+                              onClick={() => handleUpdateQty(item.id, 1)}
+                              className="w-6 h-6 bg-[#F7F6F2] text-xs font-bold cursor-pointer"
+                            >
+                              +
+                            </button>
+                          </div>
+                        </div>
+                        <div className="font-bold text-sm">
+                          ${item.price * item.quantity}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <form
+                    id="express-order-form"
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      setOrderSuccess(true);
+                      setTimeout(() => setCart([]), 400);
+                    }}
+                    className="bg-white p-5 border border-[#E5E4DC] space-y-3.5"
+                  >
+                    <p className="text-[11px] font-bold uppercase tracking-wider text-[#355E4B]">
+                      Datos de Entrega Express
+                    </p>
+                    <input
+                      type="text"
+                      required
+                      value={recipientName}
+                      onChange={(e) => setRecipientName(e.target.value)}
+                      placeholder="Nombre de quien recibe las flores"
+                      className="w-full px-3.5 py-2.5 text-xs bg-[#F7F6F2] border border-[#E5E4DC] focus:outline-none"
+                    />
+                    <input
+                      type="text"
+                      required
+                      value={deliveryPostal}
+                      onChange={(e) => setDeliveryPostal(e.target.value)}
+                      placeholder="Dirección exacta de entrega"
+                      className="w-full px-3.5 py-2.5 text-xs bg-[#F7F6F2] border border-[#E5E4DC] focus:outline-none"
+                    />
+                    <textarea
+                      rows={2}
+                      value={dedicationNote}
+                      onChange={(e) => setDedicationNote(e.target.value)}
+                      placeholder="Dedicatoria especial para la tarjeta (Gratis)"
+                      className="w-full px-3.5 py-2.5 text-xs bg-[#F7F6F2] border border-[#E5E4DC] focus:outline-none"
+                    />
+                  </form>
+                </>
+              )}
+            </div>
+
+            {cart.length > 0 && !orderSuccess && (
+              <div className="p-6 bg-white border-t border-[#E5E4DC] space-y-3">
+                <div className="flex justify-between text-xs text-[#5B5C66]">
+                  <span>Subtotal</span>
+                  <span>${rawSubtotal}.00 USD</span>
+                </div>
+                <div className="flex justify-between text-xs font-bold text-[#F28B30]">
+                  <span>20% Descuento (En Pedidos a Tiempo)</span>
+                  <span>-${discountAmount}.00 USD</span>
+                </div>
+                <div className="flex justify-between text-lg font-extrabold text-[#12131A] pt-2 border-t border-[#ECEAE4]">
+                  <span>Total Final</span>
+                  <span>${finalTotal}.00 USD</span>
+                </div>
+                <button
+                  type="submit"
+                  form="express-order-form"
+                  className="w-full py-4 bg-[#0F111A] text-white text-xs font-bold uppercase tracking-[0.18em] hover:bg-[#F28B30] transition-colors cursor-pointer"
+                >
+                  Confirmar Pedido Muy Rápido ↗
+                </button>
+              </div>
+            )}
+          </aside>
+        </div>
+      )}
+    </main>
   );
 }

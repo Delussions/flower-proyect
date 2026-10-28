@@ -1,33 +1,22 @@
-# Floralia Atelier — Landing Page de Delivery de Ramos de Flores (Next.js)
+# FLORA — Landing Page Dual de Delivery de Ramos de Flores (Next.js)
 
-Recreación pixel-perfect y expansión editorial de la landing page de delivery de ramos de flores en **Next.js 16**, **TypeScript** y **Tailwind CSS**, completamente en español, responsive y con sistema de animaciones **Parallax multicapa**.
+Recreación exacta y fusión arquitectónica de los dos diseños de referencia en **Next.js 16**, **TypeScript** y **Tailwind CSS**, 100% en español, responsive y con sistema de animaciones **Parallax multicapa**.
 
-## Análisis de Diseño y Técnicas Aplicadas
+## Diseños Integrados y Técnicas Aplicadas
 
-1. **Paleta de Colores Exacta:**
-   - **Fondo Hero (`#F6EFE2`):** Tono crema champán cálido.
-   - **Arco Principal (`#DDD7D0`):** Piedra greige suave con borde superior arqueado (`border-radius: 9999px 9999px 0 0`).
-   - **Arcos de Catálogo (`#F4F4F4`):** Gris alabastro sobre lienzo blanco puro (`#FFFFFF`).
-   - **Acento Dorado Antiguo (`#A8762A` / `#C48F3A`):** Empleados en insignias curvas SVG, íconos de métricas, contador del carrito y marcador principal del mapa.
-   - **Sección Sucursales (`#110E0C` y `#D5A362`):** Contraste nocturno obsidiana con tipografía serif en dorado champán.
-   - **Banner de Testimonios (`#9E6E28`):** Bloque ocre cálido con anillos concéntricos y tarjetas blancas flotantes en superposición asimétrica.
+1. **Diseño 1 — Split-Screen Botánico Artístico (`"la belleza alrededor nuestro"`):**
+   - División 50/50 en **Lavanda Pastel (`#D3B5ED`)** y **Verde Pistacho/Lima (`#ABC94C`)** con franja central de arabescos florales vectoriales.
+   - Tipografía marca de agua gigante en segundo plano con movimiento Parallax diferencial.
+   - Fotografía macro cenital de flor escabiosa púrpura con rotación suave al hacer scroll y sombra proyectada tridimensional.
+   - Indicador inferior de scroll con línea vertical hasta el borde (`NUEVA COLECCIÓN`) y columna vertical de redes sociales.
 
-2. **Tipografía Editorial:**
-   - **Titulares (`Cormorant Garamond`):** Serif de alto contraste caligráfico que replica la morfología exacta de las letras (`g`, `f`, `y`) del diseño original.
-   - **Interfaz y Cuerpo (`Plus Jakarta Sans`):** Sans-serif limpia con espaciado extendido (`tracking-[0.28em]`) para etiquetas y botones de acción (`COMPRAR AHORA →`).
+2. **Diseño 2 — Editorial Geométrico Express (`"Pide Flores Muy Rápido."`):**
+   - Lienzo `#F7F6F2` con cuadrícula arquitectónica sutil (`bg-wireframe-grid`), asterisco de 8 puntas y destello de 4 puntas.
+   - Titular serif de peso mixto (`Playfair Display Bold` + `Cormorant Garamond Light`) con resaltado degradado rosa pastel detrás de `"Pide"`.
+   - Collage geométrico con cuadro amarillo mantequilla (`#FFF083`), rectángulo verde bosque (`#355E4B`), bloque en "L" coral (`#F16B58`), ramo de rosas blancas y crisantemos verdes envuelto en papel kraft con rafia y canela, y tarjeta flotante `"20% Descuento En Pedidos a Tiempo"`.
+   - Métricas sociales (`200k+ Clientes Felices` con avatares superpuestos y `2M+ Reseñas de Clientes` con círculo lila `#CE9FFC`).
+   - Tarjetas inferiores pastel (`#DCE7D6` y `#F6E4C8`) con floreros que sobresalen por encima del borde superior y bloque de reseñas verificadas (`4.9 ★  01 ————— 07`).
 
-3. **Técnicas Especiales:**
-   - **Texto Curvo en Arco (`SVG <textPath>`):** Implementado en `"Demuestra tu amor"` sobre la cúpula del Hero y en las etiquetas doradas `"Más Vendido"` y `"Más Buscado"`.
-   - **Bento Grid de Arcos Direccionales:** 5 contenedores con curvaturas orientadas (`arch-right`, `arch-top`, `arch-left`) en la sección *"Los mejores ramos de esta semana"*.
-   - **Parallax Multicapa (Scroll + Mouse 3D Tilt):** Desplazamiento diferencial suave con `requestAnimationFrame` en el ramo principal, arcos, textos curvos y tarjetas de métricas.
-   - **Secciones de Continuación Coherentes:**
-     - Proceso de cosecha y delivery express en 30 minutos (4 pasos).
-     - Configurador interactivo *"Personaliza tu ramo ideal en 3 pasos"*.
-     - Planes de suscripción floral y carrito lateral interactivo con dedicatoria caligrafiada.
-
-## Ejecución Local
-
-```bash
-npm install
-npm run dev
-```
+3. **Continuación Coherente y Conmutador en Vivo:**
+   - **Catálogo Pop-Out de Entrega en 20 Minutos:** Filtrado interactivo por colección con ramos que sobresalen del marco superior.
+   - **Sección Dual 50/50 (Atelier a Medida + Calculadora de Ruta Express):** Fusiona los dos mundos visuales permitiendo personalizar tallos/aroma y calcular tiempo de envío con 20% de descuento automático.
